@@ -205,12 +205,9 @@ def orthogonal(array,t, univ):
                         if region[t]!="nan" and region[t]>0:
                             sum+=region[t]
 
-
-                    sumangmax+=sum
-                    
+                    sumangmax+=sum           
                     maxv=curv
                         
-                    
 
                     numb = numb + trace[j]
                 #sumang+=summax
@@ -224,9 +221,6 @@ def orthogonal(array,t, univ):
         angmax=univ
         #if angmax==w:
                 
-    
-    
-
 
         curort = []
 
@@ -252,22 +246,13 @@ def orthogonal(array,t, univ):
 
                 curort.append(curv)
                 numb = numb + tracemax[j]
-                    
-            
-            
-            
+                           
         
         for t in range(len(curort)):
             draw_line(array, (angmax-90), line_coords[0][curort[t]], line_coords[1][curort[t]], True)
     draw_line(array, angmax, 128, 128, True)
 
     return angmax
-
-
-    
-
-
-
 
 
 
@@ -279,16 +264,12 @@ for t in range(ds.dims['count']):
     array = da.values
 
 
-
-
    
     mini=-600
     med=50
     maxi=700
 
     ang=0
-
-
 
 
 
@@ -300,23 +281,9 @@ for t in range(ds.dims['count']):
                 array[i][j] = med  
             elif array[i][j] > 300: 
                 array[i][j] = maxi
-            
-        
-        
-
-
-
-
 
 
     univ=orthogonal(array,t, univ)
-
-
-
-
-
-
-
 
     plt.imshow(da)
     plt.savefig(f'D:/Downloads/wfimg/frame_{t}.png')
