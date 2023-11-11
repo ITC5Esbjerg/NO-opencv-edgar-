@@ -171,10 +171,7 @@ def findRegions(heights):
     
 
 def orthogonal(array,t, univ):
-    
     # Initialize your dictionary
-
-    
 
     if 0<= t <=20:
         angmax=0
