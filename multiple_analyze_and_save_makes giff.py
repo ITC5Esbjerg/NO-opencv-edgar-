@@ -6,13 +6,15 @@ from skimage.draw import line
 from collections import Counter
 
 
+threshold=7
+learning_frames=25
+val=10
+
 ds = xr.open_dataset('D:/Downloads/wassfast_output.nc')
 print(ds.dims)
 print(ds.data_vars)
-val=10
 univ=0
 angle_array=[]
-
 
 
 
@@ -33,6 +35,7 @@ def filter_array(arr, threshold):
             max_count = len(window)
             filtered_arr = window
     average = np.mean(filtered_arr) if filtered_arr else None
+    print(int(average))
     return int(average)
 
 
@@ -167,9 +170,8 @@ def findRegions(heights):
     
 
 def orthogonal(array,t, univ):
-    # Initialize your dictionary
 
-    if 0<= t <=20:
+    if 0<= t <=learning_frames:
         angmax=0
         summax=0
         for w in range(179):
@@ -188,7 +190,6 @@ def orthogonal(array,t, univ):
                 elif trace[j] < 0:
                     numb += abs(trace[j])
                 elif trace[j] > 0: #if the segment is positive
-                    maxv=0
                     
                     # Search for the value with most highest points  
                     sum=0
@@ -198,9 +199,9 @@ def orthogonal(array,t, univ):
                         if region[t]!="nan" and region[t]>0:
                             sum+=region[t]
 
-                    sumangmax+=sum           
-                    maxv=curv
-                        
+
+                    sumangmax+=sum         
+             
 
                     numb = numb + trace[j]
                 #sumang+=summax
@@ -210,11 +211,10 @@ def orthogonal(array,t, univ):
         angle_array.append(angmax)
                
     else:
-        univ=filter_array(angle_array,10)
+        univ=filter_array(angle_array,threshold)
         angmax=univ
         #if angmax==w:
-                
-
+    
         curort = []
 
         numb = 0
@@ -239,7 +239,7 @@ def orthogonal(array,t, univ):
 
                 curort.append(curv)
                 numb = numb + tracemax[j]
-                           
+                     
         
         for t in range(len(curort)):
             draw_line(array, (angmax-90), line_coords[0][curort[t]], line_coords[1][curort[t]], True)
@@ -247,6 +247,8 @@ def orthogonal(array,t, univ):
 
     return angmax
 
+
+    
 
 
 for t in range(ds.dims['count']):
@@ -256,14 +258,12 @@ for t in range(ds.dims['count']):
     da = ds['Z'].isel(count=t)
     array = da.values
 
-
    
     mini=-600
     med=50
     maxi=700
 
     ang=0
-
 
 
     for i in range(array.shape[0]):
@@ -274,16 +274,18 @@ for t in range(ds.dims['count']):
                 array[i][j] = med  
             elif array[i][j] > 300: 
                 array[i][j] = maxi
+            
 
 
     univ=orthogonal(array,t, univ)
+
 
     plt.imshow(da)
     plt.savefig(f'D:/Downloads/wfimg/frame_{t}.png')
 
 
 
-with imageio.get_writer('waveline8.gif', mode='I', loop=0) as writer:
+with imageio.get_writer('waveline10.gif', mode='I', loop=0) as writer:
     for i in range(len(ds.time)):
         image = imageio.imread(f'D:/Downloads/wfimg/frame_{i}.png')
         writer.append_data(image)
