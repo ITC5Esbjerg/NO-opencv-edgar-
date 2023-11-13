@@ -20,23 +20,19 @@ def filter_array(arr, threshold):
     # Sort the array
     arr.sort()
 
-    # Initialize the filtered array with the first number
+    max_count = 0
     filtered_arr = []
 
     # Iterate over the numbers
-    for num in arr:
-        # Find the numbers within the threshold of the current number
-        close_nums = [x for x in arr if abs(x - num) <= threshold]
-        
-        # Check if all numbers in close_nums are within the threshold of each other
-        if all(abs(x - y) <= threshold for x in close_nums for y in close_nums):
-            # If this group of numbers is larger than the current filtered array, replace it
-            if len(close_nums) > len(filtered_arr):
-                filtered_arr = close_nums
-    
-    
+    for i in range(len(arr)):
+        # Create a window from the current number to the number that is 'threshold' away
+        window = [num for num in arr if num >= arr[i] and num <= arr[i] + threshold]
+
+        # If this window has more numbers than the current filtered array, replace it
+        if len(window) > max_count:
+            max_count = len(window)
+            filtered_arr = window
     average = np.mean(filtered_arr) if filtered_arr else None
-    print(average)
     return int(average)
 
 
