@@ -1,3 +1,5 @@
+#I do not know how the velocity is determined, I only added a filter to get more stable readings
+
 import xarray as xr
 import matplotlib.pyplot as plt
 import imageio
