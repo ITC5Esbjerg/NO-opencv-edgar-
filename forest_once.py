@@ -5,6 +5,7 @@ from scipy.interpolate import make_interp_spline
 from scipy.ndimage import uniform_filter
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
+from model_library import ModelLibrary
 
 # Function to draw a line on the image
 def draw_line(image, angle, centerx, centery):
@@ -35,7 +36,7 @@ def draw_line(image, angle, centerx, centery):
     return heights, line_coords
 
 # Load your netCDF file
-ds = xr.open_dataset('D:/Downloads/wassfast_output (2).nc')
+ds = xr.open_dataset('wassfast_output.nc')
 
 # Define the area of interest
 x_start, x_end = 50, 100
@@ -47,6 +48,16 @@ imu_data = []
 
 # Conversion factor from original units to meters
 conversion_factor = 0.6 / 600
+
+#Check if model exists if so then load it (I wrote this commnet not ChatGPT :P)
+
+model_library = ModelLibrary()
+
+model_name = "forest_model"
+model_library.load_model(model_name)
+
+if model_library.model is None:
+    model_library.model = RandomForestRegressor(n_estimators=200, random_state=0)
 
 # Loop over the first 600 frames for training
 for t in range(600):
@@ -89,6 +100,8 @@ for t in range(600):
 
     # Append to IMU data list
     imu_data.append(mean_height)
+    
+model_library.save_model(model_name)
 smoothed_imu = uniform_filter(imu_data, size=5)
 
 # Prepare the input data for the Random Forest model
@@ -98,8 +111,8 @@ output_data_rf = np.array(smoothed_imu)  # This is your simulated IMU position
 # Check if the input_data_rf is not empty before training the Random Forest model
 if input_data_rf.shape[0] > 0:
     # Train the Random Forest model
-    model_rf = RandomForestRegressor(n_estimators=200, random_state=0)
-    model_rf.fit(input_data_rf, output_data_rf)
+    model_library.model = RandomForestRegressor(n_estimators=200, random_state=0)
+    model_library.model.fit(input_data_rf, output_data_rf)
 
     # Initialize lists to hold the predicted IMU positions
     predicted_imu_rf = []
@@ -132,7 +145,7 @@ if input_data_rf.shape[0] > 0:
 
         # Smooth the curve using a uniform filter
         smoothed_mean_heights_frame = uniform_filter(mean_heights_frame, size=5)
-        predicted_imu_rf.append(model_rf.predict(smoothed_mean_heights_frame[:len(smoothed_mean_heights_frame)//2].reshape(1, -1))[0])
+        predicted_imu_rf.append(model_library.model.predict(smoothed_mean_heights_frame[:len(smoothed_mean_heights_frame)//2].reshape(1, -1))[0])
         # Append to our list
         mean_heights.append(smoothed_mean_heights_frame[:len(smoothed_mean_heights_frame)//2])
 
@@ -150,7 +163,7 @@ if input_data_rf.shape[0] > 0:
         print(len(smoothed_imu))
         input_data_rf = np.array(mean_heights)
         output_data_rf = np.array(smoothed_imu) 
-        #model_rf.fit(input_data_rf, output_data_rf)
+        #model_library.model.fit(input_data_rf, output_data_rf)
 
     # Create an array for the x-axis representing the frame numbers
     x_values = np.arange(ds.dims['count'])
